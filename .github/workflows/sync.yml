@@ -1,0 +1,23 @@
+name: Mirror Repo to shivjanam
+
+on:
+  push:
+    branches:
+      - main      # Change to 'master' if your primary branch is master
+      - dev       # Add other branches you want to sync, or remove if only main
+  workflow_dispatch: # Allows manual trigger from the GitHub Actions tab
+
+jobs:
+  git-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push to Target Repository
+        run: |
+          git remote add target https://shivjanam:${{ secrets.TARGET_REPO_PAT }}@github.com/shivjanam/lawyer-portal.git
+          git push --force --prune target refs/remotes/origin/*:refs/heads/*
+          git push --force --tags target
