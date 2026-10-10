@@ -1,6 +1,7 @@
 from functools import lru_cache
 from pathlib import Path
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _settings_path = Path(__file__).resolve()
@@ -9,7 +10,12 @@ _env_file = _settings_path.parents[4] / ".env" if len(_settings_path.parents) > 
 
 class Settings(BaseSettings):
     app_name: str = "AdvocatePro Chambers API"
-    database_url: str = "postgresql+asyncpg://postgres:replace-me@localhost:5432/lms_db"
+    # The `.env` file defines DATABASE_URL (uppercase); alias it to this field
+    # so pydantic picks it up at runtime.
+    database_url: str = Field(
+        default="postgresql+asyncpg://postgres:shivjanam@localhost:5432/lms_db",
+        alias="DATABASE_URL",
+    )
     redis_url: str = "redis://localhost:6379/0"
     api_cors_origins: str = "http://localhost:3000"
     jwt_secret_key: str = "development-only-change-this-secret-before-deployment"

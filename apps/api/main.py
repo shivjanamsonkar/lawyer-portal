@@ -34,6 +34,11 @@ app.add_middleware(
 )
 
 
+@app.get("/", tags=["health"])
+async def root() -> dict[str, str]:
+    return {"status": "ok"}
+
+
 @app.get("/health", tags=["health"])
 async def health_check() -> dict[str, str]:
     return {"status": "ok"}
