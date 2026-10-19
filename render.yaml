@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: advocatepro-api
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./apps/api/Dockerfile
+    dockerContext: ./apps/api
+    dockerCommand: >-
+      sh -c 'python -m alembic upgrade head
+      && python -m app.core.bootstrap_hosted_admin
+      && exec uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}'
+    healthCheckPath: /ready
+    envVars:
+      - key: APP_ENVIRONMENT
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: BOOTSTRAP_ADMIN_NAME
+        sync: false
+      - key: BOOTSTRAP_ADMIN_PHONE
+        sync: false
+      - key: BOOTSTRAP_ADMIN_EMAIL
+        sync: false
+      - key: BOOTSTRAP_ADMIN_PASSWORD
+        sync: false

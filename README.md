@@ -38,6 +38,18 @@ The core portal (authentication, matters, clients, hearing dates, and fee ledger
 
 For a Docker-based setup on a machine with Docker Desktop running, copy `.env.example` to `.env`, set both database URLs and a unique JWT secret, then run `docker compose up --build` from this directory. Compose uses the existing PostgreSQL database; it does not create a PostgreSQL container.
 
+## Free hosted demo (Vercel + Render + Neon)
+
+The web app can stay on Vercel while the FastAPI service runs on Render and PostgreSQL runs on Neon. The tracked [`render.yaml`](render.yaml) defines the Render API service. To create a free demo:
+
+1. Create a Neon project and copy its PostgreSQL connection string. Keep it private; Render converts the standard `postgresql://` URL and Neon SSL parameters for the async driver.
+2. In Render, create a Blueprint instance from this repository and select the `render.yaml` Blueprint. Enter the Neon URL as `DATABASE_URL`, plus the initial administrator's name, mobile number, email, and a strong password when prompted. Render generates the JWT secret. The service applies Alembic migrations on startup and creates the administrator only if the database has none.
+3. After the first successful deploy and administrator login, remove the four `BOOTSTRAP_ADMIN_*` variables from the Render service environment. The hosted bootstrap never changes an existing administrator, and startup skips when those values are absent.
+4. In the Vercel project settings, set `API_INTERNAL_URL` for Preview (and Production if needed) to `https://<your-render-service>.onrender.com/api`, then redeploy the Vercel site.
+5. Check `https://<your-render-service>.onrender.com/ready` before signing in; it should report `ready` once migrations and database connectivity succeed.
+
+This is a demo setup. Render's free web service sleeps after 15 minutes of inactivity and can take about a minute to wake; Render explicitly says free instances are not for production. Neon Free has limited storage and recovery history. Do not store real client identities, case files, or confidential legal information here. eCourts background sync also needs a Redis broker and worker, which are not included in this free Blueprint; the rest of the portal can run without them. See [Render's free tier limits](https://render.com/docs/free) and [Neon's plans](https://neon.com/pricing).
+
 To create an administrator for a fresh database, configure `BOOTSTRAP_ADMIN_NAME`, `BOOTSTRAP_ADMIN_PHONE`, `BOOTSTRAP_ADMIN_EMAIL`, and a strong `BOOTSTRAP_ADMIN_PASSWORD` in `.env`, then run `python -m app.core.bootstrap_admin` from `apps/api`. The command refuses to create a second super-admin.
 
 Advocate accounts start in `PENDING_APPROVAL`; only a super-admin can approve them. Passwords are Argon2 hashes, reset credentials are randomly generated and shown once, and users must change a reset password before entering the portal. Protected client, case, payment, and eCourts operations are scoped to the authenticated advocate. Postgres and Redis publish only on localhost for development. Before public production deployment, configure TLS/reverse-proxy headers, backups, monitoring, rate limiting, and verified eCourts selectors/terms. Scheduled T-7 / T-1 / T-0 notification delivery is not configured yet.
