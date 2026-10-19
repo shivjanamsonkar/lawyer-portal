@@ -37,6 +37,36 @@
 .case-balance{font-size:9px;color:#98654e;white-space:nowrap}
 @media(max-width:650px){.auth-shell{padding:82px 15px 50px}.auth-brand{left:17px;top:18px}.auth-panel{padding:24px 20px}.admin-panel{padding:0 10px 10px}.module-nav>div{overflow-x:auto;white-space:nowrap;min-width:0}.temporary-credential{align-items:flex-start;flex-direction:column}}
 
+/* Single-card, aligned sign-in layout. */
+.auth-shell:has(.auth-panel-signin){background-image:radial-gradient(ellipse at 50% 42%,#e8eee6 0,transparent 56%),linear-gradient(#264b4006 1px,transparent 1px),linear-gradient(90deg,#264b4006 1px,transparent 1px);background-size:auto,36px 36px,36px 36px}
+.auth-panel-signin{width:min(100%,456px);padding:36px 38px 25px;border-radius:10px;box-shadow:0 18px 55px #202b2a12}
+.auth-panel-signin .eyebrow{margin-bottom:8px}
+.auth-panel-signin h1{font-size:27px}
+.auth-panel-signin .auth-description{margin:8px 0 25px}
+.signin-form{display:flex;flex-direction:column;gap:21px}
+.signin-field{display:flex;flex-direction:column;gap:8px;min-width:0}
+.signin-label{display:flex;align-items:center;gap:8px;color:#526159;font-size:12px;font-weight:600}
+.signin-label svg{color:#64816f;flex:none}
+.signin-control{display:flex;align-items:stretch;width:100%;height:50px;overflow:hidden;border:1px solid #dfe5dc;border-radius:6px;background:#fbfcfa;transition:border-color .16s,box-shadow .16s,background .16s}
+.signin-control:focus-within{border-color:#73917b;background:#fff;box-shadow:0 0 0 3px #6f94801b}
+.signin-control input{display:block;flex:1;min-width:0;width:100%;height:100%;padding:0 14px;border:0;outline:0;background:transparent;color:var(--ink);font:500 13px var(--sans);box-shadow:none!important}
+.signin-control input::placeholder{color:#a3aaa4;font-weight:400}
+.signin-control input:focus{border:0;outline:0;background:transparent}
+.password-control input{padding-right:4px}
+.signin-password-toggle{display:grid;place-items:center;flex:none;width:46px;border:0;background:transparent;color:#79867e;cursor:pointer}
+.signin-password-toggle:hover{color:var(--forest)}
+.signin-password-toggle:focus-visible,.signin-submit:focus-visible{outline:3px solid #84a58c;outline-offset:2px}
+.signin-hint{margin:0;color:#89928b;font-size:10px;line-height:1.5}
+.signin-submit{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:48px;margin-top:1px;border:1px solid var(--forest);border-radius:6px;background:var(--forest);color:#fff;font:600 12px var(--sans);cursor:pointer;transition:background .16s,transform .16s,box-shadow .16s}
+.signin-submit:hover:not(:disabled){background:#1d3d34;box-shadow:0 5px 14px #264b4026;transform:translateY(-1px)}
+.signin-submit:disabled{opacity:.7;cursor:wait}
+.signin-submit .spinner{width:17px;height:17px;border:2px solid #ffffff55;border-top-color:#fff}
+.auth-panel-signin .auth-footer{margin-top:22px;padding-top:16px;text-align:center}
+.auth-panel-signin .form-error-container{margin:0}
+@media(max-width:650px){.auth-shell:has(.auth-panel-signin){padding:68px 15px 36px}.auth-panel-signin{padding:22px 22px 16px;border-radius:8px}.auth-panel-signin h1{font-size:24px}.auth-panel-signin .auth-description{margin-bottom:17px}.signin-form{gap:15px}.signin-field{gap:6px}.signin-control{height:46px}.signin-hint{font-size:9px}.auth-panel-signin .auth-footer{margin-top:15px;padding-top:12px}.auth-confidential{bottom:9px}}
+.auth-brand>span:last-child{display:block}
+@media(max-width:650px){.auth-brand{gap:9px}.auth-brand strong{font-size:14px}.auth-brand small{font-size:8px}}
+
 /* ===== Professional Login Form Styles ===== */
 .login-card{
   width:100%;

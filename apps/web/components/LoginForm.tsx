@@ -3,33 +3,39 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { logIn } from "@/lib/api";
-import { Gavel, Eye, EyeOff, Mail, Lock, AlertCircle, ArrowRight, Shield, User } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, Lock, Shield, UserRound } from "lucide-react";
+
+function nationalMobileNumber(value: string): string {
+  let digits = value.replace(/\D/g, "");
+  if (digits.length === 12 && digits.startsWith("91")) digits = digits.slice(2);
+  return digits.slice(0, 10);
+}
 
 export function LoginForm() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
-    phone: "",
-    password: "",
-  });
+  const [formData, setFormData] = useState({ phone: "", password: "" });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+  function updateField(name: "phone" | "password", value: string): void {
+    setFormData((current) => ({ ...current, [name]: name === "phone" ? nationalMobileNumber(value) : value }));
     if (error) setError(null);
-  };
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     setSaving(true);
     setError(null);
-
     try {
-      const session = await logIn({ phone: formData.phone.trim(), password: formData.password });
+      const submitted = new FormData(event.currentTarget);
+      const phone = nationalMobileNumber(String(submitted.get("phone") ?? formData.phone));
+      if (phone.length !== 10) {
+        setError("Enter a valid 10-digit mobile number.");
+        setSaving(false);
+        return;
+      }
+      const session = await logIn({ phone: `+91${phone}`, password: String(submitted.get("password") ?? formData.password) });
       router.push(session.must_change_password ? "/change-password" : session.user.role === "SUPER_ADMIN" ? "/admin/dashboard" : "/");
       router.refresh();
     } catch (reason) {
@@ -39,115 +45,28 @@ export function LoginForm() {
     }
   }
 
-  return (
-    <div className="login-card">
-      <div className="login-header">
-        <div className="login-logo">
-          <div className="logo-icon">
-            <Gavel className="w-8 h-8 text-indigo-600" />
-          </div>
-          <span className="logo-text">AdvocatePro</span>
-        </div>
-        <p className="login-tagline">Secure Chambers Access</p>
+  return <form className="signin-form" onSubmit={submit}>
+    <div className="signin-field">
+      <label htmlFor="phone" className="signin-label"><UserRound size={16} aria-hidden="true" />Mobile number</label>
+      <div className="signin-control phone-control">
+        <input id="phone" name="phone" type="tel" autoComplete="tel" required maxLength={16} placeholder="+91 98765 43210" value={formData.phone} onChange={(event) => updateField("phone", event.target.value)} aria-describedby="phone-hint" />
       </div>
-
-      <div className="login-divider">
-        <span className="divider-text">SIGN IN</span>
-      </div>
-
-      <form className="login-form" onSubmit={submit} noValidate>
-        <div className="form-group">
-          <label htmlFor="phone" className="form-label">
-            <User className="label-icon" />
-            Mobile Number
-          </label>
-          <div className="input-wrapper">
-            <Mail className="input-icon" />
-            <input
-              id="phone"
-              name="phone"
-              type="tel"
-              required
-              autoComplete="tel"
-              placeholder="+91 98765 43210"
-              value={formData.phone}
-              onChange={handleChange}
-              className="form-input"
-              maxLength={15}
-            />
-            <span className="input-suffix">
-              <span className="country-code">+91</span>
-            </span>
-          </div>
-          <p className="form-hint">Enter your registered mobile number</p>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="password" className="form-label">
-            <Lock className="label-icon" />
-            Password
-          </label>
-          <div className="input-wrapper">
-            <Lock className="input-icon" />
-            <input
-              id="password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              required
-              autoComplete="current-password"
-              placeholder="Enter your password"
-              value={formData.password}
-              onChange={handleChange}
-              className="form-input"
-            />
-            <button
-              type="button"
-              className="password-toggle"
-              onClick={() => setShowPassword(!showPassword)}
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-            </button>
-          </div>
-          <p className="form-hint">
-            <a href="#" className="hint-link">Forgot password?</a>
-          </p>
-        </div>
-
-        {error && (
-          <div className="form-error-container">
-            <AlertCircle className="error-icon" />
-            <p className="form-error">{error}</p>
-          </div>
-        )}
-
-        <button className="submit-button" type="submit" disabled={saving}>
-          <span className="button-content">
-            {saving ? (
-              <>
-                <svg className="spinner" viewBox="0 0 24 24">
-                  <circle className="path" cx="12" cy="12" r="10" stroke="none" />
-                </svg>
-                <span>Signing in...</span>
-              </>
-            ) : (
-              <>
-                <Shield className="button-icon" />
-                <span>Sign in</span>
-                <ArrowRight className="button-arrow" />
-              </>
-            )}
-          </span>
-        </button>
-      </form>
-
-      <div className="login-footer">
-        <p>Don't have an account? <a href="/signup">Request approval</a></p>
-        <p className="security-note">
-          <Shield className="shield-icon" />
-          Your information is secure. We never store passwords in plain text.
-        </p>
-      </div>
+      <p id="phone-hint" className="signin-hint">India +91 · Use the mobile number registered with your chambers.</p>
     </div>
-  );
+
+    <div className="signin-field">
+      <label htmlFor="password" className="signin-label"><Lock size={16} aria-hidden="true" />Password</label>
+      <div className="signin-control password-control">
+        <input id="password" name="password" type={showPassword ? "text" : "password"} autoComplete="current-password" required placeholder="Enter your password" value={formData.password} onChange={(event) => updateField("password", event.target.value)} />
+        <button type="button" className="signin-password-toggle" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? "Hide password" : "Show password"}>{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
+      </div>
+      <p className="signin-hint">Forgot your password? Contact your chamber administrator.</p>
+    </div>
+
+    {error && <div className="form-error-container" role="alert"><AlertCircle className="error-icon" /><p className="form-error">{error}</p></div>}
+
+    <button className="signin-submit" type="submit" disabled={saving}>
+      {saving ? <><span className="spinner" aria-hidden="true" />Signing in…</> : <><Shield size={17} aria-hidden="true" />Sign in to chambers</>}
+    </button>
+  </form>;
 }

@@ -8,7 +8,6 @@ const links = [
   { label: "Clients", href: "/clients" },
   { label: "Alarms", href: "/alarms" },
   { label: "Ledger", href: "/ledger" },
-  { label: "Admin", href: "/admin/dashboard" },
 ];
 
 export function ModuleNav() {

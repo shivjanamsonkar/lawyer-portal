@@ -13,16 +13,32 @@ c:/python314/python.exe -m venv D:/Users/Shiv/Environments/advocatepro-api
 D:/Users/Shiv/Environments/advocatepro-api/Scripts/python.exe -m pip install -r advocate-pro/apps/api/requirements.txt
 ```
 
-## Start the local stack
+## Run locally on Windows
 
-1. Copy `.env.example` to `.env`. Set the actual PostgreSQL password in both `DATABASE_URL` and `DATABASE_URL_DOCKER`; URL-encode special characters. Generate a unique `JWT_SECRET_KEY` of at least 32 characters.
-2. Ensure the PostgreSQL server listening on port 5432 contains the `lms_db` database and accepts connections from Docker Desktop through `host.docker.internal`.
-3. Run `docker compose up --build` from this directory. Compose applies Alembic migrations to the existing `lms_db`; it does not create a second PostgreSQL container.
-4. Open the web app at http://localhost:3000. The API liveness endpoint is http://localhost:8000/health and database readiness is http://localhost:8000/ready.
+The native Windows setup uses the installed PostgreSQL service and does not require Docker. The local `.env` and `apps/web/.env.local` files are ignored by Git and should point to `127.0.0.1`; never put local credentials in tracked files. PostgreSQL should be running on port 5432 with the `lms_db` database. The API's current database revision is applied with Alembic before startup.
 
-To create the first administrator, set `BOOTSTRAP_ADMIN_NAME`, `BOOTSTRAP_ADMIN_PHONE`, `BOOTSTRAP_ADMIN_EMAIL`, and a strong `BOOTSTRAP_ADMIN_PASSWORD` in `.env`, then run `docker compose run --rm api python -m app.core.bootstrap_admin`. The command refuses to create a second super-admin.
+Start the API in one PowerShell terminal:
 
-For local demo credentials and sample clients, cases, upcoming hearings, and ledger entries, see [SAMPLE_DATA.md](SAMPLE_DATA.md). Demo seeding is opt-in and disabled in production.
+```powershell
+Set-Location D:\Lawer\lawyer-portal\advocate-pro\apps\api
+D:\Users\Shiv\Environments\advocatepro-api\Scripts\python.exe -m alembic upgrade head
+D:\Users\Shiv\Environments\advocatepro-api\Scripts\python.exe -m uvicorn main:app --host 127.0.0.1 --port 8000
+```
+
+Start the web app in a second terminal:
+
+```powershell
+Set-Location D:\Lawer\lawyer-portal\advocate-pro\apps\web
+npm run dev -- --hostname 127.0.0.1
+```
+
+Open http://localhost:3000. API health is available at http://localhost:8000/health and database readiness at http://localhost:8000/ready. Local demo accounts and sample data are documented in [SAMPLE_DATA.md](SAMPLE_DATA.md). Demo seeding is opt-in and disabled by default.
+
+The core portal (authentication, matters, clients, hearing dates, and fee ledger) runs with PostgreSQL alone. The eCourts background sync additionally needs a local Redis server and Celery worker; those are not available in this Windows setup unless Docker or separate Redis/worker services are installed and started.
+
+For a Docker-based setup on a machine with Docker Desktop running, copy `.env.example` to `.env`, set both database URLs and a unique JWT secret, then run `docker compose up --build` from this directory. Compose uses the existing PostgreSQL database; it does not create a PostgreSQL container.
+
+To create an administrator for a fresh database, configure `BOOTSTRAP_ADMIN_NAME`, `BOOTSTRAP_ADMIN_PHONE`, `BOOTSTRAP_ADMIN_EMAIL`, and a strong `BOOTSTRAP_ADMIN_PASSWORD` in `.env`, then run `python -m app.core.bootstrap_admin` from `apps/api`. The command refuses to create a second super-admin.
 
 Advocate accounts start in `PENDING_APPROVAL`; only a super-admin can approve them. Passwords are Argon2 hashes, reset credentials are randomly generated and shown once, and users must change a reset password before entering the portal. Protected client, case, payment, and eCourts operations are scoped to the authenticated advocate. Postgres and Redis publish only on localhost for development. Before public production deployment, configure TLS/reverse-proxy headers, backups, monitoring, rate limiting, and verified eCourts selectors/terms. Scheduled T-7 / T-1 / T-0 notification delivery is not configured yet.
 
