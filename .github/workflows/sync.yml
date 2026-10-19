@@ -1,0 +1,26 @@
+name: Mirror Repo to shivjanam
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  workflow_dispatch:
+
+jobs:
+  git-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false # <--- Critical: stops checkout from using github-actions[bot] credentials
+
+      - name: Push to Target Repository
+        env:
+          TARGET_PAT: ${{ secrets.TARGET_REPO_PAT }}
+        run: |
+          git remote add target https://shivjanam:${TARGET_PAT}@github.com/shivjanam/lawyer-portal.git
+          git push --force --prune target refs/remotes/origin/*:refs/heads/*
+          git push --force --tags target
