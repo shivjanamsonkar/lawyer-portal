@@ -6,6 +6,5 @@ node_modules/
 coverage/
 *.tsbuildinfo
 __pycache__/
-.pytest_cache/.vercel/
-.vercel
-.env*
+.pytest_cache/
+.vercel/
