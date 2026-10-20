@@ -1,26 +1,31 @@
-name: Mirror Repo to shivjanam
+name: Sync matching branch to shivjanam
 
 on:
   push:
     branches:
       - main
       - dev
+      - codex/login-polish-preview
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   git-sync:
+    # The target repository receives this workflow too; keep it source-only.
+    if: github.repository == 'shivjanamsonkar/lawyer-portal'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Source Code
+      - name: Checkout source branch
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          persist-credentials: false # <--- Critical: stops checkout from using github-actions[bot] credentials
+          persist-credentials: false
 
-      - name: Push to Target Repository
+      - name: Push the matching branch to the target repository
         env:
           TARGET_PAT: ${{ secrets.TARGET_REPO_PAT }}
         run: |
-          git remote add target https://shivjanam:${TARGET_PAT}@github.com/shivjanam/lawyer-portal.git
-          git push --force --prune target refs/remotes/origin/*:refs/heads/*
-          git push --force --tags target
+          git remote add target https://x-access-token:${TARGET_PAT}@github.com/shivjanam/lawyer-portal.git
+          git push target "HEAD:refs/heads/${GITHUB_REF_NAME}"
